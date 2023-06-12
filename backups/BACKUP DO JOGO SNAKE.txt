@@ -1,0 +1,304 @@
+#include <stdio.h>
+#include <windows.h> //----PARA A FUNÇÃO SET CONSOLE POSITION
+#include <stdlib.h>
+#include <conio.h> //PARA FUNÇÃO GETCH E KBHIT
+#include <time.h>
+
+
+//------PRONTO
+//--O JOGO COMECA EM UMA POSIÇÃO ALEATORIA //----PRONTO
+//----A COBRA SE MOVIMENTA W,D,S,A --- PRONTO
+//---A CADA 10 MOVI, 2 COMIDAS
+//---A CADA 10 MOVI, 2 OBSTACULOS
+//---A COBRINHA NÃO PODE CHOCAR CONSIGO MESMA ---PRONTO
+//-- SE A COBRINHA COMER UM ALIMENTO, CRESCE UMA CELULA E MARCA 10 PONTOS ---- PRONTO
+//--- O JOGO TERMINA QUANDO A COBRA MORRE ---- PRONTO
+//--- O JOGO ARMAZENA O RECORDE
+//---AO MORRER O JOGO INFORMA SE O RECORDE FOI QUEBRADO OU NAO
+
+void coordXY(int x, int y){
+
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), (COORD){x,y});
+}
+
+void zerar(int tam1, int tam2, int cenario[tam1][tam2]){ //PARA ZERAR O CENARIO COM APENAS ESPAÇOS
+
+    for(int i = 0; i < tam1; i++){
+        for(int j = 0; j < tam2; j++){
+            cenario[i][j] = 32;
+        }
+    }
+}
+
+void preencher(){ //-PREENCHIMENTO DO CENARIO
+
+    for(int i = 0; i < 50; i++){//--LINHA DE CIMA
+        coordXY(i,0);
+        printf("%c", 178);
+        Sleep(5);
+    }
+
+    for(int i = 50; i >=0; i--){//---LINHA DE BAIXO
+        coordXY(i,20);
+        printf("%c", 178);
+        Sleep(5);
+    }
+
+    for(int i = 0; i < 20; i++){//---LINHA DA DIREITA
+        coordXY(50,i);
+        printf("%c", 178);
+        Sleep(5);
+    }
+
+    for(int i = 20; i > 0; i--){//----LINHA DA ESQUERDA
+        coordXY(0,i);
+        printf("%c", 178);
+        Sleep(5);
+    }
+}
+
+void desenha(int tam, int tamCobra, int cenario[tam][tam]){//----DESENHA A COBRA NO CENARIO
+    int i;
+    for(i = 0; i < tamCobra; i++){
+        coordXY(cenario[i][0], cenario[i][1]);
+        printf("%c", 219);
+    }
+}
+
+
+void posAtualiza(int tam1, int tam2, int cenario[tam1][tam2], int tamCobra){ //---ATUALIZA A POSIÇÃO DA COBRA
+
+    coordXY(cenario[tamCobra][0], cenario[tamCobra][1]);
+    printf(" ");
+
+    for(int i = tamCobra; i >=0; i--){
+        cenario[i+1][0] = cenario[i][0];
+        cenario[i+1][1] = cenario[i][1];
+
+    }
+}
+
+int corpoCobra(int tam1,int tam2, int cenario[tam1][tam2], int tamCobra, int cx, int cy){ //----VERIFICA SE O CORPO DA COBRA ENCONTOU NELA MESMA
+
+    int retorno = 0;
+
+    for(int i = 1; i < tamCobra; i++){
+        if(cx == cenario[i][0] && cy == cenario[i][1]){
+            retorno = 1;
+        }
+    }
+
+    return retorno;
+}
+
+void geraComida(int comida[4]){//----GERAÇÃO DE COMIDA
+
+        coordXY(comida[0], comida[1]);
+        printf(" ");
+        comida[0] = (rand()%48) + 1;
+        comida[1] = (rand()%18) + 1;
+
+        coordXY(comida[2], comida[3]);
+        printf(" ");
+        comida[2] = (rand()%48) + 1;
+        comida[3] = (rand()%18) + 1;
+
+
+        if(comida[0] != '+' && comida[1] != '+'){
+            coordXY(comida[0], comida[1]);
+            printf("%c", 43);
+        }
+        else{
+            comida[0] = (rand()%48) + 1;
+            comida[1] = (rand()%18) + 1;
+        }
+        if(comida[2] != '+' && comida[3] != '+'){
+            coordXY(comida[2], comida[3]);
+            printf("%c", 43);
+        }
+        else{
+            comida[2] = (rand()%48) + 1;
+            comida[3] = (rand()%18) + 1;
+        }
+
+
+}
+
+
+/*void permComida(int tam, int armazenaComida[tam], int armazenaComida2[tam], int comida[4]){
+
+
+     for(int i = 0; i < tam;i++){
+            armazenaComida[i] += comida[0];
+            armazenaComida[i+1] += comida[1];
+            coordXY(armazenaComida[i], armazenaComida2[i+1]);
+        }
+
+        for(int j = 1; j < tam;j++){
+            armazenaComida2[j] += comida[2];
+            armazenaComida2[j+1] += comida[3];
+            coordXY(armazenaComida[j], armazenaComida2[j+1]);
+
+        }
+
+}*/
+
+void geraObsta(int obsta[4]){//---GERAÇÃO DE OBSTACULOS
+
+        coordXY(obsta[0], obsta[1]);
+        obsta[0] = (rand()%48) + 1;
+        obsta[1] = (rand()%18) + 1;
+
+
+        coordXY(obsta[2], obsta[3]);
+        obsta[2] = (rand()%48) + 1;
+        obsta[3] = (rand()%18) + 1;
+        coordXY(obsta[2], obsta[3]);
+        printf("%c", 153);
+
+        if(obsta[0] != 'Ö' && obsta[1] != 'Ö'){
+            coordXY(obsta[0], obsta[1]);
+            printf("%c", 153);
+        }
+        else{
+            obsta[0] = (rand()%48) + 1;
+            obsta[1] = (rand()%18) + 1;
+        }
+
+        if(obsta[2] != 'Ö' && obsta[3] != 'Ö'){
+            coordXY(obsta[2], obsta[3]);
+            printf("%c", 153);
+        }
+
+        else{
+            obsta[2] = (rand()%48) + 1;
+            obsta[3] = (rand()%18) + 1;
+        }
+}
+
+
+
+int main(){
+
+
+     srand(time(NULL));
+    //---CENARIO
+    int cenario[50][25];
+
+    //---COBRA
+    int tamCobra = 1;//---TAMANHO DA COBRA
+    int cx = rand()%49;//---POSIÇÃO X INICIAL(LINHA)
+    int cy = rand()%19;//---POSIÇÃO Y INICIAL (COLUNA)
+
+    //---VARIAVEIS
+    int gameover = 0;
+    char tecla;
+    int pontos = 0;
+    char pergunta;
+    //---COMIDA
+    int comida[4];//--VETOR DA COMIDA
+    //int armazenaComida[100];
+    //int armazenaComida2[100];
+
+    //---OBSTACULOS
+    int obsta[4]; //VETOR DO OBSTACULO
+
+
+    //--CHAMADAS DAS FUNÇÕES
+    zerar(50,25, cenario);
+    preencher();
+    geraComida(comida);
+    geraObsta(obsta);
+    desenha(1,tamCobra, cenario);
+    int op;
+    //--------
+
+
+    //-------
+
+    while(1){
+        //---POSIÇÃO DE ONDE VAI FICAR AS INFORMAÇÕES DOS PONTOS
+        coordXY(52,2);
+        printf("Pontos: %d", pontos);
+
+        cenario[0][0] = cx;
+        cenario[0][1] = cy;
+
+        //---PEGA A TECLA PRECIONADA
+        if(kbhit()){
+            tecla = getch();
+        }
+
+
+        //---MOVIMENTAÇÃO
+        if(tecla == 'w'){
+            cy--;
+            if(cy == 0){
+                break;
+            }
+        }
+        if(tecla == 'd'){
+            cx++;
+            if(cx >= 50){
+                break;
+            }
+        }
+        if(tecla == 's'){
+            cy++;
+            if(cy == 20){
+                break;
+            }
+        }
+        if(tecla == 'a'){
+            cx--;
+            if(cx == 0){
+                break;
+            }
+        }
+
+
+        //-----VERIFICAO DA COMIDA
+        if(cx == comida[0] && cy == comida[1]){
+            pontos += 10;
+            tamCobra++;
+            geraComida(comida);
+           // permComida(100,armazenaComida,armazenaComida2,comida);
+
+        }
+
+        if(cx == comida[2] && cy == comida[3]){
+            pontos += 10;
+            tamCobra++;
+            geraComida(comida);
+            
+            //permComida(100,armazenaComida,armazenaComida2,comida);
+        }
+
+
+
+        //-----VERIFICAO DOS OBSTACULOS
+        if(cx == obsta[0] && cy == obsta[1]){
+            break;
+        }
+
+        if(cx == obsta[2] && cy == obsta[3]){
+            break;
+        }
+
+
+
+        gameover = corpoCobra(50,25, cenario,tamCobra, cx,cy);
+        posAtualiza(50,25, cenario,tamCobra);
+        desenha(1,tamCobra,cenario);
+        coordXY(50,20);
+
+        //--TAXA DE ATUALIZAÇÃO
+        Sleep(200);
+
+    }
+
+    system("cls");
+    printf("GAMEOVER! Voce fez %d pontos\n", pontos);
+    system("pause");
+    return 0;
+}

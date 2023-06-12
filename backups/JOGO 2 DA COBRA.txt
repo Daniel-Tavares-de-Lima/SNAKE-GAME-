@@ -1,0 +1,167 @@
+
+#include <stdio.h>
+#include <windows.h>
+#include <stdlib.h>
+#include <conio.h> //---para a funcao getch() e kbhit()
+#include <time.h>
+
+
+void zerar(int cenario[25][50], int tela){
+
+    for(int i = 0; i < 25; i++){
+
+        for(int j = 0; j < 50; j++){
+            cenario[i][j] = tela;
+        }
+    }
+
+}
+
+void preencher(int parede, int cenario[25][50]){
+
+    int i,j;
+     //---PAREDE DE CIMA
+    for(j=0; j < 50; j++){
+        i = 0;
+        cenario[i][j] = parede;
+    }
+
+    //-----PAREDE DE BAIXO
+    for(j = 0; j < 50; j++){
+        i = 24;
+        cenario[i][j] = parede;
+    }
+
+    //----PAREDE DA ESQUERDA
+    for(i = 0; i < 25; i++){
+        j = 0;
+        cenario[i][j] = parede;
+    }
+
+    //---PAREDE DA DIREITA
+    for(i = 0; i < 25;i++){
+        j = 49;
+        cenario[i][j] = parede;
+    }
+
+
+}
+
+int main()
+{
+
+    srand(time(NULL));
+    int i, j, tela = 32, parede = 219, CarctCobra = 219, caractComida = 190;
+    int cenario[25][50];
+    //---VARIAVEIS DA COBRA
+    int cobraX = (rand()%48) + 1, cobraY = (rand()%23) + 1;
+    //---TECLA DAS W A S D
+    char comandoTecla;
+
+    //---- VARIAVEIS APAGAR A CALDA DA COBRA
+    int deleteCaldaX[1000], deleteCaldaY[1000];
+    int tamanho = 2;
+    //--VARIAVEIS COMIDA
+    int controle = 0, comida = 0, comidaX, comidaY;
+    //--RASTROS
+    int rastroX, rastroY;
+
+
+    zerar(cenario, tela);
+    preencher(parede, cenario);
+
+
+    while(1){
+
+            //----CARACTER PRA PEGAR
+            if(kbhit()){
+                comandoTecla = getch();
+            }
+
+
+
+         deleteCaldaX[controle] = cobraX;
+         deleteCaldaY[controle] = cobraY;
+         controle++;
+
+         //----QUESTAO DA COMIDA
+         if(comida == 0){
+            comidaX = 1 + rand()%48;
+            comidaY = 1 + rand()%23;
+            cenario[comidaY][comidaX] = caractComida;
+            comida = 1;
+         }
+
+         if(cobraX == comidaX && cobraY == comidaY){
+            comida = 0;
+            tamanho++;
+         }
+         else{
+            rastroX = deleteCaldaX[controle-tamanho];
+            rastroY = deleteCaldaY[controle-tamanho];
+         }
+
+        //-----PRINTAR OS BAGUIS
+        for(i = 0; i < 25; i++){
+
+            for(j = 0; j < 50; j++){
+                printf("%c", cenario[i][j]);
+            }
+
+            printf("\n");
+        }
+
+
+        //---VE SE BATEU NA PAREDE
+        if(cobraX == 0 || cobraX == 49 || cobraY == 0 || cobraY == 24){
+            system("cls");
+            printf("Game Over!\n");
+            //---PRA DEMOAR UM TEMPO O TEXTO
+            system("pause");
+        }
+
+        cenario[cobraY][cobraX] = CarctCobra;
+
+        //---W
+        if(comandoTecla == 119){
+            cobraY--;
+        }
+        //----D
+        else if(comandoTecla == 100){
+            cobraX++;
+        }
+        //----S
+        else if(comandoTecla == 115){
+            cobraY++;
+        }
+        //-----a
+        else if(comandoTecla == 97){
+            cobraX--;
+        }
+
+        if(cobraX == rastroX && cobraY == rastroY){
+            system("cls");
+            printf("Game Overaaa!\n");
+            //---PRA DEMOAR UM TEMPO O TEXTO
+            system("pause");
+        }
+
+
+        //----APAGAR O RASTRO/CALDA
+
+        if(cobraX != rastroX || cobraY != rastroY){
+
+            cenario[rastroY][rastroX] = tela;
+
+        }
+
+        //--TEMPO DE ATUALIZAÇÃO
+        Sleep(100);
+        //---FUNCAO PARA APAGAR A MATRIZ ANTERIOR E COLOCAR UMA NOVA, NÃO FICAR COLOCANDO VARIAS;
+        system("cls");
+    }
+
+
+
+    return 0;
+}
